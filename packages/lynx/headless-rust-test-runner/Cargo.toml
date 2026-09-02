@@ -8,7 +8,7 @@ publish = false
 lynx = { path = "../engine-bridge/lynx" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-thiserror = "2.0.19"
+thiserror = "2.0.20"
 ureq = "2.12.1"
 url = "2.5.8"
 
