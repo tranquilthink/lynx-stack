@@ -1,5 +1,18 @@
 # @lynx-js/lynx-bundle-rslib-config
 
+## 0.8.0
+
+### Minor Changes
+
+- Assemble an external bundle with `LynxTemplatePlugin`, so plugins can tap the template hooks. Custom sections are named after their chunks, the intermediate files move into `.lynx`, and `ExternalBundleWebpackPlugin` is removed. ([#3726](https://github.com/lynx-family/lynx-stack/pull/3726))
+
+  `target: 'tasm'` is renamed to `'lynx'`. The environment is now named after `target`, and `id` only names the emitted bundle.
+- The minify options come from `pluginLynx` now; `output.minify` only decides whether to minify at all. `pluginLynx` applies them per environment, so `output.minify: true` on an environment no longer drops them (part of #3723). ([#3731](https://github.com/lynx-family/lynx-stack/pull/3731))
+
+### Patch Changes
+
+- `pluginReactLynx` registers the encoders and the background runtime wrapper for every caller, and `WebEncodePlugin` routes the custom sections of a bundle without a root into the slots the web runtime reads. `@lynx-js/lynx-bundle-rslib-config` only sets the template plugin and the main-thread wrapper up now. ([#3744](https://github.com/lynx-family/lynx-stack/pull/3744))
+
 ## 0.7.1
 
 ### Patch Changes

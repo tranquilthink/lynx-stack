@@ -1,5 +1,11 @@
 # @lynx-js/react-webpack-plugin
 
+## 0.11.2
+
+### Patch Changes
+
+- **BREAKING CHANGE**: Require `@lynx-js/rspeedy` `^0.17.0` in the plugins that read the build engine config through `Symbol.for('@lynx-js/rsbuild-plugin:config')`, since the engine that ships with `0.16` does not expose it. The plugins that do not touch the engine keep their existing range and add `^0.17.0` to it. ([#3682](https://github.com/lynx-family/lynx-stack/pull/3682))
+
 ## 0.11.1
 
 ### Patch Changes

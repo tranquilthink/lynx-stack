@@ -1,5 +1,28 @@
 # @lynx-js/web-core
 
+## 0.26.0
+
+### Minor Changes
+
+- Parse single-file Lynx XML with the current Vanilla Lynx `engine-version` and ([#3628](https://github.com/lynx-family/lynx-stack/pull/3628))
+  `thread="main"` / `thread="background"` syntax, and reject the legacy wrapper
+  syntax.
+- Support a view-scoped `console` in background bundles through the ([#3648](https://github.com/lynx-family/lynx-stack/pull/3648))
+  `LynxConsoleModule` native module.
+
+### Patch Changes
+
+- Support legacy XElement component names in Lynx for Web element creation, SSR, and CSS selectors. ([#3734](https://github.com/lynx-family/lynx-stack/pull/3734))
+
+- Defer callbacks registered through `__AddEventListener` by one microtask. ([#3643](https://github.com/lynx-family/lynx-stack/pull/3643))
+
+- Render main-only Lynx XML cards without requesting a missing `app-service.js` ([#3717](https://github.com/lynx-family/lynx-stack/pull/3717))
+  by registering an empty background entry when the optional background script
+  is omitted.
+- Allow Lynx-for-Web pages that use `main-thread:gesture` to render by providing no-op gesture detector element APIs. ([#3743](https://github.com/lynx-family/lynx-stack/pull/3743))
+- Updated dependencies []:
+  - @lynx-js/web-worker-rpc@0.26.0
+
 ## 0.25.0
 
 ### Minor Changes
