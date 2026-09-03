@@ -5,6 +5,7 @@ import { createRsbuild } from '@rsbuild/core'
 import type { RsbuildPlugin } from '@rsbuild/core'
 import { describe, expect, test } from '@rstest/core'
 
+import { LAYERS } from '@lynx-js/react-webpack-plugin'
 import { pluginLynx } from '@lynx-js/rsbuild-plugin'
 
 import { pluginReactLynx } from '../src/index.js'
@@ -199,6 +200,38 @@ describe('pluginAutoLynx', () => {
         plugin?.constructor.name === 'LynxTemplatePlugin'
       ),
     ).toBe(false)
+  })
+
+  test('leaves a main-thread entry of the rslib caller out of the runtime wrapper', async () => {
+    const rsbuild = await createRsbuild({
+      callerName: 'rslib',
+      // eslint-disable-next-line n/no-unsupported-features/node-builtins
+      cwd: import.meta.dirname,
+      rsbuildConfig: {
+        mode: 'production',
+        environments: { lynx: {} },
+        source: {
+          entry: {
+            'utils.m': {
+              import: './fixtures/basic.tsx',
+              layer: LAYERS.MAIN_THREAD,
+            },
+            utils: { import: './fixtures/basic.tsx', layer: LAYERS.BACKGROUND },
+          },
+        },
+        plugins: [pluginReactLynx()],
+      },
+    })
+
+    const [config] = await rsbuild.initConfigs()
+
+    const wrapper = config?.plugins?.find(plugin =>
+      plugin?.constructor.name === 'RuntimeWrapperWebpackPlugin'
+    ) as { options: { test: RegExp } } | undefined
+
+    expect(wrapper?.options.test.test('utils.m.js')).toBe(false)
+    expect(wrapper?.options.test.test('utils.js')).toBe(true)
+    expect(wrapper?.options.test.test('main-thread.js')).toBe(false)
   })
 
   test('honors the apply condition of the engine plugins', async () => {

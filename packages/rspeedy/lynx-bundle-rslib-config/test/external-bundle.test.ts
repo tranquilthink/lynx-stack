@@ -394,6 +394,42 @@ describe('JsBytecode encoding', () => {
     expect(decodedResult['custom-sections']['utils']).toBeTypeOf('string')
   })
 
+  it('should not wrap a main-thread entry with the background runtime wrapper', async () => {
+    const rslibConfig = defineExternalBundleRslibConfig({
+      source: {
+        entry: {
+          utils: {
+            import: path.join(__dirname, './fixtures/utils-lib/index.ts'),
+            layer: LAYERS.MAIN_THREAD,
+          },
+        },
+      },
+      id: 'utils-m-plain',
+      output: {
+        distPath: {
+          root: path.join(fixtureDir, 'dist', 'utils-m-plain'),
+        },
+      },
+      plugins: [pluginReactLynx()],
+    }, {
+      enableJsBytecode: false,
+    })
+
+    await build(rslibConfig)
+
+    const decodedResult = await decodeTemplate(
+      path.join(
+        fixtureDir,
+        'dist',
+        'utils-m-plain',
+        'utils-m-plain.lynx.bundle',
+      ),
+    )
+    const mainThreadSection = decodedResult['custom-sections']['utils']
+    expect(mainThreadSection).toBeTypeOf('string')
+    expect(mainThreadSection).not.toContain('.define(')
+  })
+
   it('should not compile main thread chunks to bytecode in development by default', async () => {
     const decodedResult = await buildAndDecode(
       'utils-dev-no-bytecode',

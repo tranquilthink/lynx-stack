@@ -87,6 +87,8 @@ export function applyEntry(
     const isWeb = environment.name === 'web'
       || environment.name.startsWith('web-')
 
+    const entries = chain.entryPoints.entries() ?? {}
+
     // An external bundle assembles its own template and a test run has none,
     // so the entries and template plugins below are an application's.
     const isApplication = api.context.callerName !== 'rslib'
@@ -98,7 +100,6 @@ export function applyEntry(
         )
       }
 
-      const entries = chain.entryPoints.entries() ?? {}
       const { hmr, liveReload } = environment.config.dev ?? {}
       const enabledHMR = isDev && hmr !== false
       const enabledLiveReload = isDev && liveReload !== false
@@ -246,6 +247,17 @@ export function applyEntry(
           ?? !enableChunkSplitting
       }
 
+      // An external bundle names its main-thread entries itself, so they are
+      // excluded by name; an application's carry the `main-thread` suffix.
+      const mainThreadEntries = Object.entries(entries)
+        .filter(([, entry]) =>
+          entry.values().some(value =>
+            typeof value === 'object' && !Array.isArray(value)
+            && value.layer === LAYERS.MAIN_THREAD
+          )
+        )
+        .map(([name]) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+
       chain
         .plugin(PLUGIN_NAME_RUNTIME_WRAPPER)
         .use(RuntimeWrapperWebpackPlugin, [{
@@ -265,7 +277,11 @@ export function applyEntry(
           },
           targetSdkVersion,
           // Inject runtime wrapper for all `.js` but not `main-thread.js` and `main-thread.[hash].js`.
-          test: /^(?!.*main-thread(?:\.[A-Fa-f0-9]*)?\.js$).*\.js$/,
+          test: new RegExp(
+            `^(?!(?:.*main-thread(?:\\.[A-Fa-f0-9]*)?${
+              mainThreadEntries.map(name => `|${name}`).join('')
+            })\\.js$).*\\.js$`,
+          ),
           experimental_isLazyBundle,
         }])
         .end()
