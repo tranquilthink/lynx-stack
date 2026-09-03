@@ -506,11 +506,15 @@ function previewMetricPatch(
   return { renderMs: value };
 }
 
+const volatileSettingsByAdapter = new WeakMap<object, unknown>();
+
 function readInitialSettings<TSettings>(
   adapter: { settings?: ChatSettingsAdapter<TSettings> },
 ): TSettings {
   const settings = adapter.settings;
   if (!settings) return undefined as TSettings;
+  const volatileSettings = volatileSettingsByAdapter.get(settings);
+  if (volatileSettings !== undefined) return volatileSettings as TSettings;
   try {
     for (const key of settings.storageKeys) {
       const raw = window.localStorage.getItem(key);
@@ -715,6 +719,7 @@ export function ChatController<
   useEffect(() => {
     const settingsAdapter = adapter.settings;
     if (!settingsAdapter) return;
+    volatileSettingsByAdapter.set(settingsAdapter, settings);
     try {
       const serialized = JSON.stringify(settingsAdapter.serialize(settings));
       for (const key of settingsAdapter.storageKeys) {
@@ -1751,6 +1756,9 @@ export function ChatController<
                         : 'chatProviderInputField'}
                       aria-label={control.label}
                       type={control.kind}
+                      autoComplete={control.kind === 'password'
+                        ? 'off'
+                        : undefined}
                       placeholder={control.placeholder}
                       value={control.value}
                       disabled={busy || control.disabled}

@@ -1265,7 +1265,7 @@
 .chatProviderConfig {
   display: grid;
   grid-template-columns:
-    minmax(180px, 1.3fr) minmax(120px, 0.8fr) minmax(160px, 1fr);
+    minmax(120px, 0.8fr) minmax(160px, 1fr) minmax(180px, 1.3fr);
   gap: 8px;
 }
 

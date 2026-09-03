@@ -27,10 +27,7 @@ import type {
   MastraStreamResult,
 } from './common/types.js';
 
-export interface LynxXmlChatOptions extends ChatOptions {
-  /** Do not retain request-scoped provider credentials in the shared cache. */
-  disableAgentCache?: boolean | undefined;
-}
+export type LynxXmlChatOptions = ChatOptions;
 
 export default class LynxXmlAgentService {
   private readonly agentCache = new ProviderAgentCache<LynxXmlAgent>();

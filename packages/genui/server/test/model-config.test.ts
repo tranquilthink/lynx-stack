@@ -78,15 +78,12 @@ describe('GenUI model configuration', () => {
     }
   });
 
-  test('allows configured model selection without exposing provider overrides', () => {
+  test('allows configured selection without accepting partial overrides', () => {
     const previous = process.env[GENUI_MODEL_CONFIG_ENV];
-    const previousAllowOverride = process.env.A2UI_ALLOW_CLIENT_OVERRIDE;
     process.env[GENUI_MODEL_CONFIG_ENV] = JSON.stringify(CONFIG);
-    delete process.env.A2UI_ALLOW_CLIENT_OVERRIDE;
     try {
       expect(pickProviderOptions({
         apiKey: 'client-secret',
-        baseURL: 'https://untrusted.example.com/v1',
         model: 'Doubao Pro',
         api: 'responses',
       })).toEqual({
@@ -96,6 +93,7 @@ describe('GenUI model configuration', () => {
         baseURL: undefined,
         api: undefined,
         reasoningEffort: undefined,
+        disableAgentCache: undefined,
       });
       expect(pickProviderOptions({ model: 'Unknown Model' }).model).toBe(
         undefined,
@@ -106,10 +104,42 @@ describe('GenUI model configuration', () => {
       } else {
         process.env[GENUI_MODEL_CONFIG_ENV] = previous;
       }
-      if (previousAllowOverride === undefined) {
-        delete process.env.A2UI_ALLOW_CLIENT_OVERRIDE;
+    }
+  });
+
+  test('uses a complete client provider without server model config', () => {
+    const previous = process.env[GENUI_MODEL_CONFIG_ENV];
+    delete process.env[GENUI_MODEL_CONFIG_ENV];
+    try {
+      const options = pickProviderOptions({
+        apiKey: '  client-secret  ',
+        baseURL: '  https://api.openai.com/v1  ',
+        model: '  gpt-client  ',
+      });
+      expect(options.disableAgentCache).toBe(true);
+      expect(createLLMProvider(options)).toMatchObject({
+        model: 'gpt-client',
+        api: 'responses',
+        baseURL: 'https://api.openai.com/v1',
+      });
+      expect(() =>
+        createLLMProvider(pickProviderOptions({
+          baseURL: 'https://api.openai.com/v1',
+          model: 'gpt-client',
+        }))
+      ).toThrow(`${GENUI_MODEL_CONFIG_ENV} is required`);
+      expect(() =>
+        createLLMProvider(pickProviderOptions({
+          apiKey: 'client-secret',
+          baseURL: 'https://127.0.0.1/v1',
+          model: 'gpt-client',
+        }))
+      ).toThrow('must be one of the supported provider URLs');
+    } finally {
+      if (previous === undefined) {
+        delete process.env[GENUI_MODEL_CONFIG_ENV];
       } else {
-        process.env.A2UI_ALLOW_CLIENT_OVERRIDE = previousAllowOverride;
+        process.env[GENUI_MODEL_CONFIG_ENV] = previous;
       }
     }
   });
