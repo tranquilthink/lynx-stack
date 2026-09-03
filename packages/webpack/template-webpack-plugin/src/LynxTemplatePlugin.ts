@@ -1206,9 +1206,10 @@ class LynxTemplatePluginImpl {
         chunks: assetsInfoByGroups.css,
       },
       lepusCode: {
-        // TODO: support multiple lepus chunks
         root: assetsInfoByGroups.mainThread[0],
-        chunks: [],
+        // A bundle assembled by name holds every main-thread chunk as its own
+        // section. A card has a single one.
+        chunks: assetsInfoByGroups.mainThread.slice(1),
         filename: (() => {
           const name = assetsInfoByGroups.mainThread[0]?.name;
           if (name) {
@@ -1254,7 +1255,8 @@ class LynxTemplatePluginImpl {
       ?? (!isDev && !isDebug());
     const customSectionSplit = naming
       ? buildCustomSections({
-        mainThreadAssets: lepusCode.root ? [lepusCode.root] : [],
+        mainThreadAssets: [lepusCode.root, ...lepusCode.chunks]
+          .filter(i => i !== undefined),
         manifest: encodeData.manifest,
         cssAssets: encodeData.css.chunks,
         enableBytecode: enableSectionBytecode,
